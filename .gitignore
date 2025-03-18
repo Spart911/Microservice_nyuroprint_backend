@@ -1,0 +1,16 @@
+.env
+.env.pgadmin
+
+# Игнорируем папки
+ssl/
+dir_detect/
+dir_markup/
+pgadmin/
+ready_data/
+.triton_inference_server/
+triton_inference_server/model_repository/
+
+# Игнорируем файлы
+val_markup/data.csv
+val_markup/sync_bonuses.log
+tg_support_site/session_name.session
