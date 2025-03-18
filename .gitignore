@@ -1,7 +1,9 @@
 .env
 .env.pgadmin
 
+
 # Игнорируем папки
+.idea
 ssl/
 dir_detect/
 dir_markup/
