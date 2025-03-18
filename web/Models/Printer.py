@@ -1,0 +1,81 @@
+from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey
+from sqlalchemy.ext.declarative import declarative_base
+from marshmallow import Schema, fields
+from database import DataBase
+
+# Модель Printer
+class Printer(DataBase):
+    __tablename__ = 'printer'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), unique=True, nullable=False)
+    val_print_x = Column(Float)
+    val_print_y = Column(Float)
+    val_print_z = Column(Float)
+    view_table = Column(String(127))
+    center_origin = Column(Boolean)
+    table_heating = Column(Boolean)
+    print_volume_heating = Column(Boolean)
+    type_g_code = Column(String(63))
+    min_x_head = Column(Float)
+    min_y_head = Column(Float)
+    max_x_head = Column(Float)
+    max_y_head = Column(Float)
+    height_portal = Column(Float)
+    displace_extruder = Column(Boolean)
+    count_extruder = Column(Integer)
+    start_g_code = Column(String(63))
+    end_g_code = Column(String(63))
+    extr_1_nozzle_diameter = Column(Float)
+    extr_1_filament_diameter = Column(Float)
+    extr_1_nozzle_displacement_x = Column(Float)
+    extr_1_nozzle_displacement_y = Column(Float)
+    extr_1_fan_number = Column(Integer)
+    extr_1_start_g_code = Column(String(63))
+    extr_1_end_g_code = Column(String(63))
+    extr_2_nozzle_diameter = Column(Float)
+    extr_2_filament_diameter = Column(Float)
+    extr_2_nozzle_displacement_x = Column(Float)
+    extr_2_nozzle_displacement_y = Column(Float)
+    extr_2_fan_number = Column(Integer)
+    extr_2_start_g_code = Column(String(63))
+    extr_2_end_g_code = Column(String(63))
+
+    def __repr__(self):
+        return f"<Printer(name={self.name})>"
+
+# Схема PrinterSchema
+class PrinterSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    name = fields.String(required=True)
+    val_print_x = fields.Float()
+    val_print_y = fields.Float()
+    val_print_z = fields.Float()
+    view_table = fields.String()
+    center_origin = fields.Boolean()
+    table_heating = fields.Boolean()
+    print_volume_heating = fields.Boolean()
+    type_g_code = fields.String()
+    min_x_head = fields.Float()
+    min_y_head = fields.Float()
+    max_x_head = fields.Float()
+    max_y_head = fields.Float()
+    height_portal = fields.Float()
+    displace_extruder = fields.Boolean()
+    count_extruder = fields.Integer()
+    start_g_code = fields.String()
+    end_g_code = fields.String()
+    extr_1_nozzle_diameter = fields.Float()
+    extr_1_filament_diameter = fields.Float()
+    extr_1_nozzle_displacement_x = fields.Float()
+    extr_1_nozzle_displacement_y = fields.Float()
+    extr_1_fan_number = fields.Integer()
+    extr_1_start_g_code = fields.String()
+    extr_1_end_g_code = fields.String()
+    extr_2_nozzle_diameter = fields.Float()
+    extr_2_filament_diameter = fields.Float()
+    extr_2_nozzle_displacement_x = fields.Float()
+    extr_2_nozzle_displacement_y = fields.Float()
+    extr_2_fan_number = fields.Integer()
+    extr_2_start_g_code = fields.String()
+    extr_2_end_g_code = fields.String()

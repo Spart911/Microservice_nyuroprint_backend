@@ -1,0 +1,163 @@
+services:
+  tritonserver:
+    build:
+      context: ./triton_inference_server
+      dockerfile: Dockerfile
+    networks:
+      - my_network
+    container_name: triton_inference_server
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    ports:
+      - "8000:8000"  # HTTP
+      - "8001:8001"  # gRPC
+      - "8002:8002"  # Metrics
+    volumes:
+      - .triton_inference_server/model_repository:/workspace/model_repository  # Монтируем локальную папку с моделями
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/v2/health/ready"]  # Проверка готовности сервера
+      interval: 30s  # Интервал между проверками
+      timeout: 5s     # Таймаут для каждой проверки
+      retries: 3      # Количество попыток перед выводом ошибки
+      start_period: 40s  # Время ожидания перед первой проверкой
+    restart: unless-stopped  # Перезапуск контейнера при сбоях, если не остановлен вручную
+    command: ["tritonserver", "--model-repository=/workspace/model_repository", "--log-verbose=1"]
+    # Запуск Triton с указанием репозитория моделей
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: web
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./web:/workspace
+      - ./dir_detect:/uploads
+      - ./ssl:/ssl
+    depends_on:
+      - db
+    networks:
+      - my_network
+  db:
+    image: postgres:16
+    env_file: web/.env
+    expose:
+      - 5432
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - my_network
+
+  tg_support:  # Поменяли имя сервиса на tg_support
+      build:
+        context: ./tg_support_site  # Папка с вашим приложением
+        dockerfile: Dockerfile        # Dockerfile для tg_support_site
+      ports:
+        - "8765:8765"  # Порт для вашего приложения FastAPI
+      volumes:
+        - ./tg_support_site:/home/app
+        - ./tg_support_site/.env:/app/.env
+        - ./ssl:/ssl
+      networks:
+        - my_network
+      depends_on:
+        - db
+      env_file: ./tg_support_site/.env
+      environment:
+        - PYTHONUNBUFFERED=1
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: password
+    ports:
+      - "7777:80"  # Maps pgAdmin to port 7777 on the host
+    networks:
+      - my_network
+    depends_on:
+      - db
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+  web_user:
+    build:
+      context: ./web_user
+      dockerfile: Dockerfile
+    ports:
+      - "6004:6004"
+    container_name: web-user
+    env_file:
+      - web_user/.env
+    depends_on:
+      - db
+    volumes:
+      - ./web_user:/app
+    restart: always
+    networks:
+      - my_network
+
+  frontend_telegram_bot:
+    build:
+      context: ./tg_bot
+      dockerfile: Dockerfile
+    container_name: frontend-telegram-bot
+    env_file:
+      - tg_bot/.env
+    volumes:
+      - ./tg_bot:/app
+    restart: always
+    networks:
+      - my_network
+
+  imagepicker:
+    build:
+      context: ./imagepicker
+      dockerfile: Dockerfile
+    container_name: imagepicker
+    volumes:
+      - ./imagepicker:/app
+      - ./ssl:/ssl
+      - ./dir_markup:/app/data
+      - ./ready_data:/app/ready_data
+    ports:
+      - "6666:6666"
+    depends_on:
+      - db
+    networks:
+      - my_network
+
+  val_detect:
+    build:
+      context: ./val_detect
+      dockerfile: Dockerfile
+    container_name: val_detect
+    env_file:
+      - val_detect/.env
+    volumes:
+      - ./val_detect:/app
+      - ./dir_markup:/app/dir_markup
+      - ./dir_detect:/app/dir_detect
+    restart: always
+    networks:
+      - my_network
+
+  val_markup:
+    build:
+      context: ./val_markup
+      dockerfile: Dockerfile
+    container_name: val_markup
+    env_file:
+      - val_markup/.env
+    volumes:
+      - ./val_markup:/app
+    restart: always
+    networks:
+      - my_network
+
+volumes:
+    pgadmin_data:
+
+networks:
+  my_network:
